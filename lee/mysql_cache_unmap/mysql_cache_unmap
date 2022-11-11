@@ -1,0 +1,59 @@
+#!/bin/sh
+
+## ---------------------------------------------------
+## Basic Define
+## ---------------------------------------------------
+SCRIPT_NAME=$(basename $0)
+SCRIPT_BASEDIR="$( cd "$( dirname "$0" )" && pwd )"
+
+## function
+function gen_log_names(){
+  log_path=$1
+  arr=( `ls $log_path | grep -P '(.*)\.[0-9]+$' | sort ` )
+  for (( i = 0; i < ${#arr[@]} - 1; i++ ));
+  do
+    log_names="$log_names $log_path/${arr[$i]}"
+  done
+}
+
+## generate file string
+log_names=""
+
+
+## ---------------------------------------------------
+## unmap caches
+## ---------------------------------------------------
+
+
+### ECHO BINARY LOG DIRECTORY ###
+
+
+## binlog path - Change me
+
+if [ -z $1 ];then
+  echo -e "\033[31m"!!! We need binary directory !!!"\033[0m"
+  echo "mysql_cache_unmap [bindary log dir] [relay log dir]"
+  exit
+fi
+
+if [ -z $2 ];then
+  echo -e "\033[31m"!!! We need relay directory !!!"\033[0m"
+  echo "mysql_cache_unmap [bindary log dir] [relay log dir]"
+  exit
+fi
+ 
+echo "Bindary Log :  $1"
+echo "Relay Log :  $2"
+
+gen_log_names $1
+gen_log_names $2
+
+## unmap cache
+echo "-----------------------------------------------------------------------"
+echo "`date` cache unmap.. start"
+echo "-----------------------------------------------------------------------"
+free | grep Mem
+echo "-----------------------------------------------------------------------"
+$SCRIPT_BASEDIR/lib/unmap_cache  $log_names
+echo "-----------------------------------------------------------------------"
+free | grep Mem
